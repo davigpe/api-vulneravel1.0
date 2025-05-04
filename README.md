@@ -114,6 +114,10 @@ Reduza privilégios do usuário da aplicação para leitura e escrita apenas nas
 
 ---
 
-## Autor
+## Autores
 
-Projeto desenvolvido para fins educacionais sobre pentesting e segurança em APIs RESTful com MongoDB.
+Andressa Lopes
+Davi Pereira
+Gustavo Marcelino
+Rebeca Lara
+Stefani Santana
