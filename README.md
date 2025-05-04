@@ -116,8 +116,8 @@ Reduza privilégios do usuário da aplicação para leitura e escrita apenas nas
 
 ## Autores
 
-Andressa Lopes
-Davi Pereira
-Gustavo Marcelino
-Rebeca Lara
-Stefani Santana
+- Andressa Lopes
+- Davi Pereira
+- Gustavo Marcelino
+- Rebeca Lara
+- Stefani Santana
